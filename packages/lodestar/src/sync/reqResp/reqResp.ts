@@ -17,12 +17,14 @@ import {IReqRespHandler} from "./interface";
 import {IBeaconMetrics} from "../../metrics";
 import {onBeaconBlocksByRange} from "../../network/reqresp/handlers/beaconBlocksByRange";
 import {onBeaconBlocksByRoot} from "../../network/reqresp/handlers/beaconBlocksByRoot";
+import {ITaskService} from "../../tasks/interface";
 
 export interface IReqRespHandlerModules {
   config: IBeaconConfig;
   db: IBeaconDb;
   chain: IBeaconChain;
   network: INetwork;
+  chores: ITaskService;
   metrics?: IBeaconMetrics;
   logger: ILogger;
 }
@@ -58,14 +60,16 @@ export class BeaconReqRespHandler implements IReqRespHandler {
   private db: IBeaconDb;
   private chain: IBeaconChain;
   private network: INetwork;
+  private chores: ITaskService;
   private metrics?: IBeaconMetrics;
   private logger: ILogger;
 
-  constructor({config, db, chain, network, metrics, logger}: IReqRespHandlerModules) {
+  constructor({config, db, chain, network, chores, metrics, logger}: IReqRespHandlerModules) {
     this.config = config;
     this.db = db;
     this.chain = chain;
     this.network = network;
+    this.chores = chores;
     this.metrics = metrics;
     this.logger = logger;
   }
@@ -114,7 +118,13 @@ export class BeaconReqRespHandler implements IReqRespHandler {
         yield* this.onMetadata();
         break;
       case Method.BeaconBlocksByRange:
-        yield* onBeaconBlocksByRange(requestBody as phase0.BeaconBlocksByRangeRequest, this.chain, this.db);
+        yield* await onBeaconBlocksByRange(
+          this.config,
+          requestBody as phase0.BeaconBlocksByRangeRequest,
+          this.chain,
+          this.db,
+          this.chores
+        );
         break;
       case Method.BeaconBlocksByRoot:
         yield* onBeaconBlocksByRoot(requestBody as phase0.BeaconBlocksByRootRequest, this.db);

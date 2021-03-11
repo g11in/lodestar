@@ -18,6 +18,8 @@ import {generatePeer} from "../../utils/peer";
 import {generateState} from "../../utils/state";
 import {StubbedBeaconChain, StubbedBeaconDb} from "../../utils/stub";
 import {getStubbedMetadataStore, StubbedIPeerMetadataStore} from "../../utils/peer";
+import {ITaskService} from "../../../src/tasks/interface";
+import {TasksService} from "../../../src/tasks";
 
 chai.use(chaiAsPromised);
 
@@ -33,6 +35,7 @@ describe("sync req resp", function () {
     metaStub: StubbedIPeerMetadataStore,
     reqRespStub: SinonStubbedInstance<ReqResp>;
   let dbStub: StubbedBeaconDb;
+  let choreStub: SinonStubbedInstance<ITaskService>;
 
   beforeEach(() => {
     chainStub = new StubbedBeaconChain(sandbox, config);
@@ -48,12 +51,14 @@ describe("sync req resp", function () {
     metaStub = getStubbedMetadataStore();
     networkStub.peerMetadata = metaStub;
     dbStub = new StubbedBeaconDb(sandbox);
+    choreStub = sandbox.createStubInstance(TasksService);
 
     syncRpc = new BeaconReqRespHandler({
       config,
       db: (dbStub as unknown) as IBeaconDb,
       chain: chainStub,
       network: networkStub,
+      chores: choreStub,
       metrics,
       logger,
     });
@@ -117,19 +122,18 @@ describe("sync req resp", function () {
       count: 4,
       step: 2,
     };
-    dbStub.blockArchive.valuesStream.returns(
-      (async function* () {
-        for (const slot of [2, 4]) {
-          const block = generateEmptySignedBlock();
-          block.message.slot = slot;
-          yield block;
-        }
-      })()
+    dbStub.blockArchive.values.resolves(
+      [2, 4].map((slot) => {
+        const block = generateEmptySignedBlock();
+        block.message.slot = slot;
+        return block;
+      })
     );
+    choreStub.getBlockArchivingStatus.returns({lastFinalizedSlot: 10, finalizingSlot: null});
     const block8 = generateEmptySignedBlock();
     block8.message.slot = 8;
     // block 6 does not exist
-    chainStub.getUnfinalizedBlocksAtSlots = sandbox.stub().resolves([null!, block8]);
+    chainStub.getUnfinalizedBlocksAtSlots = sandbox.stub().resolves([block8]);
 
     const slots: number[] = [];
     try {

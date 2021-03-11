@@ -45,12 +45,9 @@ describe("block archiver task", function () {
         forkChoice: forkChoiceStub,
         logger,
       },
-      {
-        epoch: 5,
-        root: ZERO_HASH,
-      }
+      0
     );
-    await archiverTask.run();
+    await archiverTask.run({epoch: 5, root: ZERO_HASH});
     expect(
       dbStub.blockArchive.batchPutBinary.calledWith(
         canonicalBlocks.map((summary) => ({

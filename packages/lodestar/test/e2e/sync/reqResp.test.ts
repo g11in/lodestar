@@ -4,7 +4,7 @@ import {ForkChoice} from "@chainsafe/lodestar-fork-choice";
 import {phase0} from "@chainsafe/lodestar-types";
 import {expect} from "chai";
 import Libp2p from "libp2p";
-import sinon from "sinon";
+import sinon, {SinonStubbedInstance} from "sinon";
 import {encode} from "varint";
 import all from "it-all";
 import {Method, ReqRespEncoding, RpcResponseStatus} from "../../../src/constants";
@@ -24,6 +24,8 @@ import {generateState} from "../../utils/state";
 import {StubbedBeaconDb} from "../../utils/stub";
 import {arrToSource} from "../../unit/network/reqresp/utils";
 import {testLogger} from "../../utils/logger";
+import {ITaskService} from "../../../src/tasks/interface";
+import {TasksService} from "../../../src/tasks";
 
 const multiaddr = "/ip4/127.0.0.1/tcp/0";
 const opts: INetworkOptions = {
@@ -41,6 +43,7 @@ const BLOCK_SLOT = 2020;
 block.message.slot = BLOCK_SLOT;
 const block2 = generateEmptySignedBlock();
 block2.message.slot = BLOCK_SLOT + 1;
+block2.message.parentRoot = config.types.phase0.BeaconBlock.hashTreeRoot(block.message);
 
 describe("[sync] rpc", function () {
   this.timeout(20000);
@@ -53,6 +56,7 @@ describe("[sync] rpc", function () {
   let rpcB: IReqRespHandler, netB: Network;
   let libP2pA: Libp2p;
   let chain: MockBeaconChain;
+  let choresStub: SinonStubbedInstance<ITaskService>;
 
   beforeEach(async () => {
     const state = generateState();
@@ -91,16 +95,13 @@ describe("[sync] rpc", function () {
     chain.stateCache.get = sinon.stub().returns(state as any);
     db.block.get.resolves(block);
     db.blockArchive.get.resolves(block);
-    db.blockArchive.valuesStream.returns(
-      (async function* () {
-        yield block;
-        yield block2;
-      })()
-    );
+    db.blockArchive.values.resolves([block, block2]);
+    choresStub = sandbox.createStubInstance(TasksService);
     rpcA = new BeaconReqRespHandler({
       config,
       db,
       chain,
+      chores: choresStub,
       metrics,
       network: netA,
       logger,
@@ -110,6 +111,7 @@ describe("[sync] rpc", function () {
       config,
       db,
       chain,
+      chores: choresStub,
       metrics,
       network: netB,
       logger: logger,
@@ -198,21 +200,45 @@ describe("[sync] rpc", function () {
     expect(block.message.slot).to.equal(BLOCK_SLOT);
   });
 
-  it("beacon blocks by range", async () => {
-    const request: phase0.BeaconBlocksByRangeRequest = {
-      startSlot: BLOCK_SLOT,
-      count: 2,
-      step: 1,
-    };
+  describe("beacon blocks by range", function () {
+    it("should not wait for BlockArchiver", async () => {
+      const request: phase0.BeaconBlocksByRangeRequest = {
+        startSlot: BLOCK_SLOT,
+        count: 2,
+        step: 1,
+      };
 
-    await netA.connect(netB.peerId, netB.localMultiaddrs);
-    const response = await netA.reqResp.beaconBlocksByRange(netB.peerId, request);
-    if (!response) throw Error("beaconBlocksByRoot returned null");
-    expect(response.length).to.equal(2);
-    const block = response[0];
-    expect(block.message.slot).to.equal(BLOCK_SLOT);
-    const block2 = response[1];
-    expect(block2.message.slot).to.equal(BLOCK_SLOT + 1);
+      await netA.connect(netB.peerId, netB.localMultiaddrs);
+      choresStub.getBlockArchivingStatus.returns({lastFinalizedSlot: BLOCK_SLOT, finalizingSlot: null});
+      const response = await netA.reqResp.beaconBlocksByRange(netB.peerId, request);
+      if (!response) throw Error("beaconBlocksByRoot returned null");
+      expect(response.length).to.equal(2);
+      const block = response[0];
+      expect(block.message.slot).to.equal(BLOCK_SLOT);
+      const block2 = response[1];
+      expect(block2.message.slot).to.equal(BLOCK_SLOT + 1);
+      expect(choresStub.waitForBlockArchiver.called).to.be.false;
+    });
+
+    it("should wait for BlockArchiver", async () => {
+      const request: phase0.BeaconBlocksByRangeRequest = {
+        startSlot: BLOCK_SLOT,
+        count: 2,
+        step: 1,
+      };
+
+      await netA.connect(netB.peerId, netB.localMultiaddrs);
+      choresStub.getBlockArchivingStatus.returns({lastFinalizedSlot: BLOCK_SLOT, finalizingSlot: BLOCK_SLOT + 32});
+      choresStub.waitForBlockArchiver.resolves();
+      const response = await netA.reqResp.beaconBlocksByRange(netB.peerId, request);
+      if (!response) throw Error("beaconBlocksByRoot returned null");
+      expect(response.length).to.equal(2);
+      const block = response[0];
+      expect(block.message.slot).to.equal(BLOCK_SLOT);
+      const block2 = response[1];
+      expect(block2.message.slot).to.equal(BLOCK_SLOT + 1);
+      expect(choresStub.waitForBlockArchiver.called).to.be.true;
+    });
   });
 
   it("should return invalid request status code", async () => {
