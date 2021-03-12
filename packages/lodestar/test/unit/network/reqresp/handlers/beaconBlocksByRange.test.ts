@@ -7,6 +7,7 @@ import {
   handleBeaconBlocksByRange,
   isOverlappedRange,
   onBeaconBlocksByRange,
+  shouldRetry,
   shouldWaitForBlockArchiver,
 } from "../../../../../src/network/reqresp/handlers/beaconBlocksByRange";
 import {TasksService} from "../../../../../src/tasks";
@@ -66,6 +67,38 @@ describe("shouldWaitForBlockArchiver", function () {
       newArchiveStatus: {lastFinalizedSlot: 32, finalizingSlot: 64},
       expected: true,
     },
+  ];
+  for (const tc of testCases2) {
+    it(tc.desc, function () {
+      expect(shouldWaitForBlockArchiver(requestBody, tc.archiveStatus, tc.newArchiveStatus)).to.be.equal(tc.expected);
+    });
+  }
+});
+
+describe("shouldRetry", function () {
+  const requestBody = {
+    startSlot: 40,
+    count: 30,
+    step: 1,
+  };
+  const testCases: {
+    desc: string;
+    archiveStatus: IArchivingStatus;
+    newArchiveStatus: IArchivingStatus;
+    expected: boolean;
+  }[] = [
+    {
+      desc: "2nd check, same archive status",
+      archiveStatus: {lastFinalizedSlot: 32, finalizingSlot: null},
+      newArchiveStatus: {lastFinalizedSlot: 32, finalizingSlot: null},
+      expected: false,
+    },
+    {
+      desc: "2nd check, different archive status - Block Archiver is running at different range",
+      archiveStatus: {lastFinalizedSlot: 32, finalizingSlot: null},
+      newArchiveStatus: {lastFinalizedSlot: 1000, finalizingSlot: 1032},
+      expected: false,
+    },
     {
       desc: "2nd check, different archive status - Block Archiver is completed at different range",
       archiveStatus: {lastFinalizedSlot: 32, finalizingSlot: null},
@@ -79,9 +112,10 @@ describe("shouldWaitForBlockArchiver", function () {
       expected: true,
     },
   ];
-  for (const tc of testCases2) {
+
+  for (const tc of testCases) {
     it(tc.desc, function () {
-      expect(shouldWaitForBlockArchiver(requestBody, tc.archiveStatus, tc.newArchiveStatus)).to.be.equal(tc.expected);
+      expect(shouldRetry(requestBody, tc.archiveStatus, tc.newArchiveStatus)).to.be.equal(tc.expected);
     });
   }
 });

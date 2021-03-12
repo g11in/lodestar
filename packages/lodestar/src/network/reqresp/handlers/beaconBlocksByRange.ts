@@ -34,7 +34,7 @@ export async function onBeaconBlocksByRange(
   }
   const archiveStatus = chores.getBlockArchivingStatus();
   let blocks: phase0.SignedBeaconBlock[];
-  // BlockArchiver is running with a ranges overlapping requestBody
+  // BlockArchiver is running with a ranges overlapped requestBody
   if (shouldWaitForBlockArchiver(requestBody, archiveStatus)) {
     // BLockArchiver finishes its run
     await chores.waitForBlockArchiver();
@@ -42,10 +42,12 @@ export async function onBeaconBlocksByRange(
   } else {
     blocks = await handleBeaconBlocksByRange(requestBody, chain, db);
     const newArchiveStatus = chores.getBlockArchivingStatus();
-    // BlockArchiver may run during handleBeaconBlocksByRange
+    // BlockArchiver is running with an overlappsed range
     if (shouldWaitForBlockArchiver(requestBody, archiveStatus, newArchiveStatus)) {
       await chores.waitForBlockArchiver();
-      // BLockArchiver finishes its run
+      blocks = await handleBeaconBlocksByRange(requestBody, chain, db);
+    } else if (shouldRetry(requestBody, archiveStatus, newArchiveStatus)) {
+      // BlockArchiver finishes its run during handleBeaconBlocksByRange
       blocks = await handleBeaconBlocksByRange(requestBody, chain, db);
     }
   }
@@ -65,30 +67,47 @@ export async function onBeaconBlocksByRange(
  * Else
  *      + if same IArchivingStatus, return false
  *      + else if different IArchivingStatus and newArchiveStatus is running with an overlapping range, return true
- *      + else if different IArchivingStatus and newArchiveStatus is complete with an overlapping range, return true
- *      + else if different IArchivingStatus and newArchiveStatus is complete without an overllaping range, return false
+ *      + else return false
  */
 export function shouldWaitForBlockArchiver(
   requestBody: phase0.BeaconBlocksByRangeRequest,
   archiveStatus: IArchivingStatus,
   newArchiveStatus?: IArchivingStatus
 ): boolean {
+  // 1st check
   if (!newArchiveStatus) {
     return (
       archiveStatus.finalizingSlot !== null &&
       isOverlappedRange(requestBody, archiveStatus.lastFinalizedSlot, archiveStatus.finalizingSlot)
     );
   } else {
+    // 2nd check
     if (isSameArchiveStatus(archiveStatus, newArchiveStatus)) {
       return false;
     } else {
-      return newArchiveStatus.finalizingSlot !== null
-        ? // BlockArchiver may run at the same time with an overlappsed range
-          isOverlappedRange(requestBody, newArchiveStatus.lastFinalizedSlot, newArchiveStatus.finalizingSlot)
-        : // BlockArchiver may finish its run but it used to work on an overlappsed range in the last run
-          isOverlappedRange(requestBody, archiveStatus.lastFinalizedSlot, newArchiveStatus.lastFinalizedSlot);
+      return (
+        newArchiveStatus.finalizingSlot !== null &&
+        // BlockArchiver may run at the same time with an overlappsed range
+        isOverlappedRange(requestBody, newArchiveStatus.lastFinalizedSlot, newArchiveStatus.finalizingSlot)
+      );
     }
   }
+}
+
+/**
+ * if different IArchivingStatus and newArchiveStatus is complete with an overlapping range, return true
+ * if different IArchivingStatus and newArchiveStatus is complete without an overllaping range, return false
+ */
+export function shouldRetry(
+  requestBody: phase0.BeaconBlocksByRangeRequest,
+  archiveStatus: IArchivingStatus,
+  newArchiveStatus: IArchivingStatus
+): boolean {
+  return (
+    !isSameArchiveStatus(archiveStatus, newArchiveStatus) &&
+    newArchiveStatus.finalizingSlot == null &&
+    isOverlappedRange(requestBody, archiveStatus.lastFinalizedSlot, newArchiveStatus.lastFinalizedSlot)
+  );
 }
 
 export function isSameArchiveStatus(archiveStatus: IArchivingStatus, newArchiveStatus: IArchivingStatus): boolean {
