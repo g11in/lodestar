@@ -86,7 +86,7 @@ export class BeaconReqRespHandler implements IReqRespHandler {
           try {
             await this.goodbye(peer.id, GoodByeReasonCode.CLIENT_SHUTDOWN);
           } catch (e) {
-            this.logger.verbose("Failed to send goodbye", {error: e.message});
+            this.logger.verbose("Failed to send goodbye", {error: (e as Error).message});
           }
         })
     );
@@ -128,7 +128,7 @@ export class BeaconReqRespHandler implements IReqRespHandler {
     } catch (e) {
       this.logger.debug("Irrelevant peer", {
         peer: peerId.toB58String(),
-        reason: e instanceof LodestarError ? e.getMetadata() : e.message,
+        reason: e instanceof LodestarError ? e.getMetadata() : (e as Error).message,
       });
       await this.goodbye(peerId, GoodByeReasonCode.IRRELEVANT_NETWORK);
       return;
@@ -181,7 +181,7 @@ export class BeaconReqRespHandler implements IReqRespHandler {
       } catch (e) {
         this.logger.verbose("Failed to get peer latest status and metadata", {
           peerId: peerId.toB58String(),
-          error: e.message,
+          error: (e as Error).message,
         });
         await this.network.disconnect(peerId);
       }
