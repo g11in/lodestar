@@ -13,6 +13,7 @@ class CallbackTransport extends TransportStream {
     this.callback = callback;
   }
   log(info: any): void {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     this.callback(info[MESSAGE]);
   }
 }
