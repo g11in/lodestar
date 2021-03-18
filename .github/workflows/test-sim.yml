@@ -6,12 +6,16 @@ jobs:
   tests-sim:
     name: Sim tests
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [10, 11, 12, 13, 14, 15]
     steps:
       # <common-build> - Uses YAML anchors in the future
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2-beta
         with:
-          node-version: "12.14.1"
+          node-version: ${{ matrix.node }}
       - name: Restore dependencies
         uses: actions/cache@master
         id: cache-deps
@@ -19,7 +23,7 @@ jobs:
           path: |
             node_modules
             packages/*/node_modules
-          key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}-ignore-optional
+          key: ${{ runner.os }}-${{ matrix.node }}-${{ hashFiles('**/yarn.lock') }}-ignore-optional
       - name: Install & build
         if: steps.cache-deps.outputs.cache-hit != 'true'
         run: yarn install --frozen-lockfile --ignore-optional
