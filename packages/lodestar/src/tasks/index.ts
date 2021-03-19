@@ -15,11 +15,6 @@ import {INetwork, NetworkEvent} from "../network";
 import {GENESIS_SLOT} from "@chainsafe/lodestar-params";
 import {IArchivingStatus, ITaskService} from "./interface";
 
-/**
- * Minimum number of epochs between archived states
- */
-export const MIN_EPOCHS_PER_DB_STATE = 1024;
-
 export interface ITasksModules {
   db: IBeaconDb;
   logger: ILogger;
