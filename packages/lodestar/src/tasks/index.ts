@@ -39,8 +39,8 @@ export class TasksService implements ITaskService {
   private readonly logger: ILogger;
 
   private readonly statesArchiver: StatesArchiver;
+  private readonly blockArchiver: ArchiveBlocksTask;
   private readonly interopSubnetsTask: InteropSubnetsJoiningTask;
-  private blockArchiver: ArchiveBlocksTask | null = null;
 
   constructor(config: IBeaconConfig, modules: ITasksModules) {
     this.config = config;
@@ -49,6 +49,11 @@ export class TasksService implements ITaskService {
     this.logger = modules.logger;
     this.network = modules.network;
     this.statesArchiver = new StatesArchiver(this.config, modules);
+    this.blockArchiver = new ArchiveBlocksTask(this.config, {
+      db: this.db,
+      forkChoice: this.chain.forkChoice,
+      logger: this.logger,
+    });
     this.interopSubnetsTask = new InteropSubnetsJoiningTask(this.config, {
       chain: this.chain,
       network: this.network,
@@ -58,15 +63,7 @@ export class TasksService implements ITaskService {
 
   async start(): Promise<void> {
     const lastFinalizedSlot = (await this.db.blockArchive.lastKey()) ?? GENESIS_SLOT;
-    this.blockArchiver = new ArchiveBlocksTask(
-      this.config,
-      {
-        db: this.db,
-        forkChoice: this.chain.forkChoice,
-        logger: this.logger,
-      },
-      lastFinalizedSlot
-    );
+    this.blockArchiver.init(lastFinalizedSlot);
     this.chain.emitter.on(ChainEvent.forkChoiceFinalized, this.onFinalizedCheckpoint);
     this.chain.emitter.on(ChainEvent.checkpoint, this.onCheckpoint);
     this.network.gossip.on(NetworkEvent.gossipStart, this.handleGossipStart);
@@ -83,12 +80,12 @@ export class TasksService implements ITaskService {
     await this.statesArchiver.archiveState(this.chain.getFinalizedCheckpoint());
   }
 
-  public getBlockArchivingStatus(): IArchivingStatus {
-    return this.blockArchiver!.getArchivingStatus();
+  getBlockArchivingStatus(): IArchivingStatus {
+    return this.blockArchiver.getArchivingStatus();
   }
 
-  public async waitForBlockArchiver(): Promise<void> {
-    return await this.blockArchiver!.waitUntilComplete();
+  async waitForBlockArchiver(): Promise<void> {
+    return await this.blockArchiver.waitUntilComplete();
   }
 
   private handleGossipStart = (): void => {
@@ -101,7 +98,7 @@ export class TasksService implements ITaskService {
 
   private onFinalizedCheckpoint = async (finalized: phase0.Checkpoint): Promise<void> => {
     try {
-      await this.blockArchiver!.run(finalized);
+      await this.blockArchiver.run(finalized);
       // should be after ArchiveBlocksTask to handle restart cleanly
       await this.statesArchiver.maybeArchiveState(finalized);
 

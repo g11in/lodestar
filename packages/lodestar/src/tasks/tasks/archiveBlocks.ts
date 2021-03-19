@@ -25,18 +25,24 @@ export class ArchiveBlocksTask {
   private readonly logger: ILogger;
 
   private finalizingSlot: number | null;
-  private lastFinalizedSlot: number;
+  private lastFinalizedSlot = 0;
   // beacon_blocks_by_range handlers waiting for this
   private subscribedPromises: (() => void)[];
 
-  constructor(config: IBeaconConfig, modules: IArchiveBlockModules, lastFinalizedSlot: number) {
+  constructor(config: IBeaconConfig, modules: IArchiveBlockModules) {
     this.config = config;
     this.db = modules.db;
     this.forkChoice = modules.forkChoice;
     this.logger = modules.logger;
-    this.lastFinalizedSlot = lastFinalizedSlot;
     this.finalizingSlot = null;
     this.subscribedPromises = [];
+  }
+
+  /**
+   * Initialize the task with a last finalized block from db.
+   */
+  init(lastFinalizedSlot: number): void {
+    this.lastFinalizedSlot = lastFinalizedSlot;
   }
 
   /**
@@ -75,7 +81,7 @@ export class ArchiveBlocksTask {
   /**
    * Returns the blocks being moved from blocks db to archivedBlocks db.
    */
-  public getArchivingStatus(): IArchivingStatus {
+  getArchivingStatus(): IArchivingStatus {
     return {
       lastFinalizedSlot: this.lastFinalizedSlot,
       finalizingSlot: this.finalizingSlot,
@@ -85,7 +91,7 @@ export class ArchiveBlocksTask {
   /**
    * Wait for run() to be done.
    */
-  public waitUntilComplete(): Promise<void> {
+  waitUntilComplete(): Promise<void> {
     return new Promise((resolve) => {
       this.subscribedPromises.push(resolve);
     });
