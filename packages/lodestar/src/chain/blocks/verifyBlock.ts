@@ -150,6 +150,7 @@ export async function verifyBlockStateTransition(
     }
   }
 
+  let payloadStatusUnknown;
   if (executionPayloadEnabled) {
     // TODO: Handle better executePayload() returning error is syncing
     const status = await chain.executionEngine.executePayload(
@@ -157,7 +158,8 @@ export async function verifyBlockStateTransition(
       // For clarity and since it's needed anyway, just send the struct representation at this level such that
       // executePayload() can expect a regular JS object.
       // TODO: If blocks are no longer TreeBacked, remove.
-      executionPayloadEnabled.valueOf() as typeof executionPayloadEnabled
+      executionPayloadEnabled.valueOf() as typeof executionPayloadEnabled,
+      chain.forkChoice
     );
 
     switch (status) {
@@ -178,6 +180,7 @@ export async function verifyBlockStateTransition(
         //
         // TODO: Exit with critical error if we can't prepare payloads on top of what we consider head.
         if (partiallyVerifiedBlock.fromRangeSync) {
+          payloadStatusUnknown = true;
           break;
         } else {
           throw new BlockError(block, {code: BlockErrorCode.EXECUTION_ENGINE_SYNCING});
@@ -194,5 +197,6 @@ export async function verifyBlockStateTransition(
     block,
     postState,
     skipImportingAttestations: partiallyVerifiedBlock.skipImportingAttestations,
+    payloadStatusUnknown,
   };
 }
