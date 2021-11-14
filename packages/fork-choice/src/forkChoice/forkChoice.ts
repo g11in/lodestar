@@ -638,8 +638,9 @@ export class ForkChoice implements IForkChoice {
    * 1. verify is_merge_block if the mergeblock has not yet been validated
    * 2. Throw critical error and exit if a block in finalized chain gets invalidated
    */
-  validateLatestHash(_latestValidHash: RootHex, _invalidBranchDecendantHash: RootHex | null): void {
-    throw Error("NOT_IMPLEMENTED");
+  validateLatestHash(_latestValidHash: RootHex, invalidBranchDecendantHash: RootHex | null): void {
+    if (invalidBranchDecendantHash) throw Error("NOT_IMPLEMENTED");
+    // Silently ignore for now if all calls were valid
   }
 
   private updateJustified(justifiedCheckpoint: CheckpointWithHex, justifiedBalances: number[]): void {
