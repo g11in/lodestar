@@ -113,7 +113,7 @@ describe("executionEngine / ExecutionEngineHttp", function () {
 
     startELProcess({
       runScriptPath: `../../kintsugi/${process.env.EL_SCRIPT_DIR}/${elScript}`,
-      TTD: ttd,
+      TTD: `${ttd}`,
       DATA_DIR: dataPath,
     });
 
