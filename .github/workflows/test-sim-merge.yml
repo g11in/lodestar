@@ -42,8 +42,8 @@ jobs:
         run: yarn test:sim:merge-interop
         working-directory: packages/lodestar
         env:
-          EL_BINARY_PATH: ../../go-ethereum/build/bin
-          EL_DIR: geth
+          EL_BINARY_DIR: ../../go-ethereum/build/bin
+          EL_SCRIPT_DIR: geth
           EL_PORT: 8545
 
       # Install Nethermind merge interop
@@ -59,8 +59,8 @@ jobs:
         run: yarn test:sim:merge-interop
         working-directory: packages/lodestar
         env:
-          EL_BINARY_PATH: ../../nethermind/src/Nethermind/Nethermind.Runner
-          EL_DIR: nethermind
+          EL_BINARY_DIR: ../../nethermind/src/Nethermind/Nethermind.Runner
+          EL_SCRIPT_DIR: nethermind
           EL_PORT: 8550
 
 
