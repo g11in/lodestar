@@ -2,6 +2,12 @@
 
 scriptDir=$(dirname $0)
 
+echo $TTD
+echo $DATA_DIR
+echo $scriptDir
+echo $EL_BINARY_DIR
+
+
 env TTD=$TTD envsubst < $scriptDir/genesisPre.tmpl > $DATA_DIR/genesis.json
 echo "45a915e4d060149eb4365960e6a7a45f334393093061116b197e3240065ff2d8" > $DATA_DIR/sk.json
 echo "12345678" > $DATA_DIR/password.txt
