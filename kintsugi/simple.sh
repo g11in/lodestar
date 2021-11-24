@@ -10,8 +10,7 @@ curl --location --request POST 'localhost:8545/' \
 		"to": "0xafa3f8684e54059998bc3a7b0d2b0da075154d66",
 		"gas": "0x76c0",
 		"gasPrice": "0x9184e72a000",
-		"value": "0x9184e72a",
-		"password": "12345678"
+		"value": "0x9184e72a"
 	}],
 	"id":1
 }'

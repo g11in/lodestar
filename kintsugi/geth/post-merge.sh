@@ -14,4 +14,4 @@ pubKey="0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b"
 
 docker run --rm -v /mnt/code/lodestar/mergetest/packages/lodestar/$DATA_DIR:/data g11k-dregistry:31320/geth:kintsugi geth --catalyst --datadir /data init /data/genesis.json
 docker run --rm -v /mnt/code/lodestar/mergetest/packages/lodestar/$DATA_DIR:/data g11k-dregistry:31320/geth:kintsugi geth --catalyst --datadir /data account import /data/sk.json --password /data/password.txt
-docker run --network host -v /mnt/code/lodestar/mergetest/packages/lodestar/$DATA_DIR:/data g11k-dregistry:31320/geth:kintsugi geth --catalyst --http --ws -http.api "engine,net,eth" --datadir /data --allow-insecure-unlock --unlock $pubKey --password /data/password.txt
+docker run --network host -v /mnt/code/lodestar/mergetest/packages/lodestar/$DATA_DIR:/data g11k-dregistry:31320/geth:kintsugi geth  --catalyst --http --ws -http.api "engine,net,eth" --allow-insecure-unlock --unlock $pubKey --password /data/password.txt --datadir /data 

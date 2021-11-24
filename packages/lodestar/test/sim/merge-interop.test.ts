@@ -27,7 +27,7 @@ import {bytesToData, dataToBytes, quantityToNum} from "../../src/eth1/provider/u
 // EL_PORT: EL port on localhost for hosting both engine & json rpc endpoints
 // Example:
 // ```
-// $ EL_BINARY_DIR=/home/lion/Code/eth2.0/merge-interop/go-ethereum/build/bin EL_SCRIPT_DIR=geth EL_PORT=8545 ../../node_modules/.bin/mocha test/sim/merge.test.ts
+// $ EL_BINARY_DIR=/home/lion/Code/eth2.0/merge-interop/go-ethereum/build/bin EL_SCRIPT_DIR=geth EL_PORT=8545 TX_SCENARIOS=simple ../../node_modules/.bin/mocha test/sim/merge.test.ts
 // ```
 
 /* eslint-disable no-console, @typescript-eslint/naming-convention, quotes */
@@ -35,6 +35,7 @@ import {bytesToData, dataToBytes, quantityToNum} from "../../src/eth1/provider/u
 // MERGE_EPOCH will happen at 2 sec * 8 slots = 16 sec
 // 10 ttd / 2 difficulty per block = 5 blocks * 5 sec = 25 sec
 const terminalTotalDifficultyPreMerge = 20;
+const TX_SCENARIOS=process.env.TX_SCENARIOS?.split(",");
 
 describe("executionEngine / ExecutionEngineHttp", function () {
   this.timeout("10min");
@@ -129,8 +130,7 @@ describe("executionEngine / ExecutionEngineHttp", function () {
 
   it("Send stub payloads to EL", async () => {
     const {genesisBlockHash} = await runEL("post-merge.sh", 0);
-    console.log({TEST_TXS: process.env.TEST_TXS});
-    if(process.env.TEST_TXS=="simple") await shell(`../../kintsugi/./simple.sh`);
+    if(TX_SCENARIOS.includes("simple")) await shell(`../../kintsugi/./simple.sh`);
 
     const controller = new AbortController();
     const executionEngine = new ExecutionEngineHttp({urls: [engineApiUrl]}, controller.signal);
@@ -164,7 +164,6 @@ describe("executionEngine / ExecutionEngineHttp", function () {
      **/
 
     const payload = await executionEngine.getPayload(payloadId);
-    console.log({payload})
 
     // 3. Execute the payload
     /**
