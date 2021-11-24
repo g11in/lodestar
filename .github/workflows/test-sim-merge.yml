@@ -31,20 +31,20 @@ jobs:
         if: steps.cache-deps.outputs.cache-hit == 'true'
       # </common-build>
 
-      # Install Geth merge interop
-      # - uses: actions/setup-go@v2
-      # - name: Clone Geth merge interop branch
-      #   run: git clone -b kintsugi-spec https://github.com/MariusVanDerWijden/go-ethereum.git && cd go-ethereum && git reset --hard b629e2560aae26059bf69ef19690385e078cbefd && git submodule update
-      # - name: Build Geth
-      #   run: cd go-ethereum && make
+      Install Geth merge interop
+      - uses: actions/setup-go@v2
+      - name: Clone Geth merge interop branch
+        run: git clone -b kintsugi-spec https://github.com/MariusVanDerWijden/go-ethereum.git && cd go-ethereum && git reset --hard 932939feb6735f4295911063c09b1100aee24cb1 && git submodule update
+      - name: Build Geth
+        run: cd go-ethereum && make
 
-      # - name: Test Lodestar <> Geth interop
-      #   run: yarn test:sim:merge-interop
-      #   working-directory: packages/lodestar
-      #   env:
-      #     EL_BINARY_DIR: ../../go-ethereum/build/bin
-      #     EL_SCRIPT_DIR: geth
-      #     EL_PORT: 8545
+      - name: Test Lodestar <> Geth interop
+        run: yarn test:sim:merge-interop
+        working-directory: packages/lodestar
+        env:
+          EL_BINARY_DIR: ../../go-ethereum/build/bin
+          EL_SCRIPT_DIR: geth
+          EL_PORT: 8545
 
       # Install Nethermind merge interop
       - uses: actions/setup-dotnet@v1
