@@ -129,6 +129,8 @@ describe("executionEngine / ExecutionEngineHttp", function () {
 
   it("Send stub payloads to EL", async () => {
     const {genesisBlockHash} = await runEL("post-merge.sh", 0);
+    console.log({TEST_TXS: process.env.TEST_TXS});
+    if(process.env.TEST_TXS=="simple") await shell(`../../kintsugi/./simple.sh`);
 
     const controller = new AbortController();
     const executionEngine = new ExecutionEngineHttp({urls: [engineApiUrl]}, controller.signal);
@@ -162,6 +164,7 @@ describe("executionEngine / ExecutionEngineHttp", function () {
      **/
 
     const payload = await executionEngine.getPayload(payloadId);
+    console.log({payload})
 
     // 3. Execute the payload
     /**
@@ -202,27 +205,27 @@ describe("executionEngine / ExecutionEngineHttp", function () {
      */
   });
 
-  it("Post-merge, run for a few blocks", async function () {
-    console.log("\n\nPost-merge, run for a few blocks\n\n");
-    const {genesisBlockHash} = await runEL("post-merge.sh", 0);
-    await runNodeWithEL.bind(this)({
-      genesisBlockHash,
-      mergeEpoch: 0,
-      ttd: BigInt(0),
-      testName: "post-merge",
-    });
-  });
+  // it("Post-merge, run for a few blocks", async function () {
+  //   console.log("\n\nPost-merge, run for a few blocks\n\n");
+  //   const {genesisBlockHash} = await runEL("post-merge.sh", 0);
+  //   await runNodeWithEL.bind(this)({
+  //     genesisBlockHash,
+  //     mergeEpoch: 0,
+  //     ttd: BigInt(0),
+  //     testName: "post-merge",
+  //   });
+  // });
 
-  it("Pre-merge, run for a few blocks", async function () {
-    console.log("\n\nPre-merge, run for a few blocks\n\n");
-    const {genesisBlockHash} = await runEL("pre-merge.sh", terminalTotalDifficultyPreMerge);
-    await runNodeWithEL.bind(this)({
-      genesisBlockHash,
-      mergeEpoch: 1,
-      ttd: BigInt(terminalTotalDifficultyPreMerge),
-      testName: "pre-merge",
-    });
-  });
+  // it("Pre-merge, run for a few blocks", async function () {
+  //   console.log("\n\nPre-merge, run for a few blocks\n\n");
+  //   const {genesisBlockHash} = await runEL("pre-merge.sh", terminalTotalDifficultyPreMerge);
+  //   await runNodeWithEL.bind(this)({
+  //     genesisBlockHash,
+  //     mergeEpoch: 1,
+  //     ttd: BigInt(terminalTotalDifficultyPreMerge),
+  //     testName: "pre-merge",
+  //   });
+  // });
 
   async function runNodeWithEL(
     this: Context,
