@@ -12,5 +12,5 @@ echo "12345678" > $DATA_DIR/password.txt
 pubKey="0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b"
 
 
-docker run --rm -v /mnt/code/lodestar/mergetest/packages/lodestar/$DATA_DIR:/data g11k-dregistry:31320/geth:kintsugi geth --catalyst --datadir /data init /data/genesis.json
-docker run --rm -v /mnt/code/lodestar/mergetest/packages/lodestar/$DATA_DIR:/data g11k-dregistry:31320/geth:kintsugi geth --catalyst --datadir /data account import /data/sk.json --password /data/password.txt
+docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) -v /mnt/code/lodestar/mergetest/packages/lodestar/$DATA_DIR:/data $EL_BINARY_DIR geth --catalyst --datadir /data init /data/genesis.json
+docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) -v /mnt/code/lodestar/mergetest/packages/lodestar/$DATA_DIR:/data $EL_BINARY_DIR geth --catalyst --datadir /data account import /data/sk.json --password /data/password.txt
