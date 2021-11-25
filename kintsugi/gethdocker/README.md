@@ -2,6 +2,7 @@
 
 ###### Build geth docker image
 ```bash
+cd kintsugi/gethdocker
 docker build  . --tag geth:kintsugi
 ```
 
