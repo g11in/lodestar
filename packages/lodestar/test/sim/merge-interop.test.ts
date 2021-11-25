@@ -49,7 +49,7 @@ describe("executionEngine / ExecutionEngineHttp", function () {
   const engineApiUrl = `http://localhost:${enginePort}`;
 
   after(async () => {
-    //await shell(`sudo rm -rf ${dataPath}`);
+    await shell(`rm -rf ${dataPath}`);
   });
 
   const afterEachCallbacks: (() => Promise<void> | void)[] = [];
@@ -111,7 +111,7 @@ describe("executionEngine / ExecutionEngineHttp", function () {
       );
     }
 
-    await shell(`sudo rm -rf ${dataPath}`);
+    await shell(`rm -rf ${dataPath}`);
     fs.mkdirSync(dataPath, {recursive: true});
 
     startELProcess({
