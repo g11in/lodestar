@@ -29,3 +29,5 @@ jobs:
     needs: tag
     steps:
     - run: echo ${{needs.tag.outputs.tag}} ${{needs.tag.outputs.prev_tag}}
+      with:
+        tagtest: ${{needs.tag.outputs.tag}}
