@@ -1,4 +1,5 @@
 name: Release
+on: [push, pull_request]
 jobs:
   job1:
     runs-on: ubuntu-latest
