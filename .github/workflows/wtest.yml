@@ -31,4 +31,5 @@ jobs:
     - run: echo ${{needs.tag.outputs.tag}} ${{needs.tag.outputs.prev_tag}}
     - uses: actions/setup-node@v1
       with:
-        tagtest: ${{needs.tag.outputs.tag}}
+        tagtest: ${{ needs.tag.outputs.tag }}
+        prevtagtest: ${{ needs.tag.outputs.tag }}
