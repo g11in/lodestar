@@ -32,4 +32,4 @@ jobs:
     - uses: actions/setup-node@v1
       with:
         tagtest: ${{ needs.tag.outputs.tag }}
-        prevtagtest: ${{ needs.tag.outputs.tag }}
+        prevtagtest: ${{ needs.tag.outputs.prev_tag }}
