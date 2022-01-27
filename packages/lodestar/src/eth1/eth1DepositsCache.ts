@@ -53,6 +53,7 @@ export class Eth1DepositsCache {
       index: depositEvent.index,
       root: ssz.phase0.DepositData.hashTreeRoot(depositEvent.depositData),
     }));
+    if(depositRoots.length>0)console.log({depositRoots});
 
     // Store events after verifying that data is consecutive
     // depositDataRoot will throw if adding non consecutive roots

@@ -158,6 +158,7 @@ export class Eth1DepositDataTracker {
     const toBlock = Math.min(remoteFollowBlock, fromBlock + MAX_BLOCKS_PER_LOG_QUERY - 1);
 
     const depositEvents = await this.eth1Provider.getDepositEvents(fromBlock, toBlock);
+    if(depositEvents.length>0)console.log({depositEvents})
     this.logger.verbose("Fetched deposits", {depositCount: depositEvents.length, fromBlock, toBlock});
 
     await this.depositsCache.add(depositEvents);

@@ -30,6 +30,7 @@ export class DepositDataRootRepository extends Repository<number, Root> {
   async batchPut(items: IKeyValue<number, Root>[]): Promise<void> {
     const depositRootTree = await this.getDepositRootTree();
     await super.batchPut(items);
+    console.log("depositdataroot items",{items})
     for (const {key, value} of items) {
       depositRootTree[key] = value as TreeBacked<Root>;
     }
