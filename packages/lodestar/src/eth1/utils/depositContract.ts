@@ -21,6 +21,7 @@ export const depositEventTopics = [depositContractInterface.getEventTopic("Depos
  */
 export function parseDepositLog(log: {blockNumber: number; data: string; topics: string[]}): phase0.DepositEvent {
   const event = depositContractInterface.parseLog(log);
+  console.log("parseDepositLog",{log,event});
   const values = event.args;
   if (values === undefined) throw Error(`DepositEvent at ${log.blockNumber} has no values`);
   return {
