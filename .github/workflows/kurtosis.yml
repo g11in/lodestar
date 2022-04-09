@@ -3,77 +3,25 @@ name: Sim merge tests
 on: [pull_request, push]
 
 env:
-  GETH_COMMIT: 815a414312db9a922c5a34ac034fb7aa8861f2e7
-  NETHERMIND_COMMIT: 78ae2353be5d05a285d6aaa1826910489d381a3e
-
+    TEKU_IMAGE: "consensys/teku"
+    NIMBUS_IMAGE: "parithoshj/nimbus"
+    PRYSM_BEACON_IMAGE: "gcr.io/prysmaticlabs/prysm/beacon-chain"
+    PRYSM_VALIDATOR_IMAGE: "gcr.io/prysmaticlabs/prysm/validator"
+    LIGHTHOUSE_IMAGE: "sigp/lighthouse:latest-unstable"
+    LODESTAR_IMAGE: "chainsafe/lodestar:next"
+    GETH_IMAGE: "g11tech/geth:kilnv1"
+    NETHERMIND_IMAGE: "nethermindeth/nethermind"
 jobs:
-  sim-merge-tests:
-    name: Sim merge tests
-    runs-on: ubuntu-latest
+  kurtosis:
+    name: kurtosis
+    runs-on: kurtosis
+    # Increase timeout if we add more difficult tests that take longer!
+    timeout-minutes: 10
     steps:
-      # <common-build> - Uses YAML anchors in the future
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
-        with:
-          node-version: "lts/gallium"
-      - name: Node.js version
-        id: node
-        run: echo "::set-output name=v8CppApiVersion::$(node --print "process.versions.modules")"
-      - name: Restore dependencies
-        uses: actions/cache@master
-        id: cache-deps
-        with:
-          path: |
-            node_modules
-            packages/*/node_modules
-          key: ${{ runner.os }}-${{ steps.node.outputs.v8CppApiVersion }}-${{ hashFiles('**/yarn.lock', '**/package.json') }}
-      - name: Install & build
-        if: steps.cache-deps.outputs.cache-hit != 'true'
-        run: yarn install --frozen-lockfile --ignore-optional && yarn build
-      - name: Build
-        run: yarn build
-        if: steps.cache-deps.outputs.cache-hit == 'true'
-      # </common-build>
-
-      # Install Geth merge interop
-      - uses: actions/setup-go@v2
-        with:
-          go-version: '1.17'
-      - name: Clone Geth merge interop branch
-        run: git clone -b merge-kiln-jwt https://github.com/g11tech/go-ethereum.git && cd go-ethereum && git reset --hard $GETH_COMMIT && git submodule update --init --recursive
-      - name: Build Geth
-        run: cd go-ethereum && make
-
-      - name: Test Lodestar <> Geth interop
-        run: yarn test:sim:merge-interop
-        working-directory: packages/lodestar
-        env:
-          EL_BINARY_DIR: ../../go-ethereum/build/bin
-          EL_SCRIPT_DIR: kiln/geth
-          EL_PORT: 8545
-          ENGINE_PORT: 8551
-          TX_SCENARIOS: simple
-
-      # Install Nethermind merge interop
-      - uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: "6.0.x"
-      - name: Clone Nethermind merge interop branch
-        run: git clone -b kiln https://github.com/g11tech/nethermind --recursive && cd nethermind && git reset --hard $NETHERMIND_COMMIT && git submodule update --init --recursive
-      - name: Build Nethermind
-        run: cd nethermind/src/Nethermind && dotnet build Nethermind.sln -c Release
-
-      - name: Test Lodestar <> Nethermind interop
-        run: yarn test:sim:merge-interop
-        working-directory: packages/lodestar
-        env:
-          EL_BINARY_DIR: ../../nethermind/src/Nethermind/Nethermind.Runner
-          EL_SCRIPT_DIR: kiln/nethermind
-          EL_PORT: 8550
-
-      - name: Upload debug log test files
-        if: ${{ always() }}
-        uses: actions/upload-artifact@v2
-        with:
-          name: debug-test-logs
-          path: packages/lodestar/test-logs
+      - name: Checkout this repo
+        uses: actions/checkout@master
+      - name: Update kurtosis to latest and set metrics choice
+        shell: bash
+        run: |
+            sudo apt update
+            sudo apt upgrade kurtosis-cli
