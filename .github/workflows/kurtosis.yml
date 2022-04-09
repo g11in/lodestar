@@ -14,7 +14,7 @@ env:
 jobs:
   kurtosis:
     name: kurtosis
-    runs-on: kurtosis
+    runs-on: ubuntu-latest
     # Increase timeout if we add more difficult tests that take longer!
     timeout-minutes: 10
     steps:
@@ -23,5 +23,6 @@ jobs:
       - name: Update kurtosis to latest and set metrics choice
         shell: bash
         run: |
+            echo "deb [trusted=yes] https://apt.fury.io/kurtosis-tech/ /" | sudo tee /etc/apt/sources.list.d/kurtosis.list
             sudo apt update
-            sudo apt upgrade kurtosis-cli
+            sudo apt install kurtosis-cli -y
