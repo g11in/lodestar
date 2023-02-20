@@ -3,9 +3,9 @@ import {
   CachedBeaconStateAllForks,
   CachedBeaconStateBellatrix,
   CachedBeaconStateCapella,
-  DataAvailableStatus,
   ExecutionPayloadStatus,
   getBlockRootAtSlot,
+  DataAvailableStatus,
 } from "@lodestar/state-transition";
 import * as blockFns from "@lodestar/state-transition/block";
 import {ssz, phase0, altair, bellatrix, capella} from "@lodestar/types";
@@ -79,7 +79,6 @@ const operationFns: Record<string, BlockProcessFn<CachedBeaconStateAllForks>> = 
         executionPayloadStatus: testCase.execution.execution_valid
           ? ExecutionPayloadStatus.valid
           : ExecutionPayloadStatus.invalid,
-        // TODO Deneb: Make this value dynamic on fork Deneb
         dataAvailableStatus: DataAvailableStatus.preDeneb,
       }
     );

@@ -11,7 +11,6 @@ import {BlockError, BlockErrorCode} from "../../../../chain/errors/index.js";
 import {OpSource} from "../../../../metrics/validatorMonitor.js";
 import {NetworkEvent} from "../../../../network/index.js";
 import {ApiModules} from "../../types.js";
-import {ckzg} from "../../../../util/kzg.js";
 import {resolveBlockId, toBeaconHeaderResponse} from "./utils.js";
 
 /**
@@ -205,23 +204,12 @@ export function getBeaconBlockApi({
       let blockForImport: BlockInput, signedBlock: allForks.SignedBeaconBlock, signedBlobs: deneb.SignedBlobSidecars;
 
       if (isSignedBlockContents(signedBlockOrContents)) {
-        // Build a blockInput for post deneb, signedBlobs will be be used in followup PRs
         ({signedBlock, signedBlobSidecars: signedBlobs} = signedBlockOrContents as allForks.SignedBlockContents);
-        const beaconBlockSlot = signedBlock.message.slot;
-        const beaconBlockRoot = config.getForkTypes(beaconBlockSlot).BeaconBlock.hashTreeRoot(signedBlock.message);
-        const blobs = signedBlobs.map((sblob) => sblob.message.blob);
-
         blockForImport = getBlockInput.postDeneb(
           config,
           signedBlock,
           BlockSource.api,
-          // The blobsSidecar will be replaced in the followup PRs with just blobs
-          {
-            beaconBlockRoot,
-            beaconBlockSlot,
-            blobs,
-            kzgAggregatedProof: ckzg.computeAggregateKzgProof(blobs),
-          }
+          signedBlobs.map((sblob) => sblob.message)
         );
       } else {
         signedBlock = signedBlockOrContents as allForks.SignedBeaconBlock;
@@ -231,7 +219,8 @@ export function getBeaconBlockApi({
 
       // Simple implementation of a pending block queue. Keeping the block here recycles the API logic, and keeps the
       // REST request promise without any extra infrastructure.
-      const msToBlockSlot = computeTimeAtSlot(config, signedBlock.message.slot, chain.genesisTime) * 1000 - Date.now();
+      const msToBlockSlot =
+        computeTimeAtSlot(config, blockForImport.block.message.slot, chain.genesisTime) * 1000 - Date.now();
       if (msToBlockSlot <= MAX_API_CLOCK_DISPARITY_MS && msToBlockSlot > 0) {
         // If block is a bit early, hold it in a promise. Equivalent to a pending queue.
         await sleep(msToBlockSlot);
@@ -242,7 +231,7 @@ export function getBeaconBlockApi({
       const publishPromises = [
         // Send the block, regardless of whether or not it is valid. The API
         // specification is very clear that this is the desired behaviour.
-        () => network.publishBeaconBlockMaybeBlobs(blockForImport) as Promise<unknown>,
+        () => network.publishBeaconBlock(signedBlock) as Promise<unknown>,
         () =>
           chain.processBlock(blockForImport, opts).catch((e) => {
             if (e instanceof BlockError && e.type.code === BlockErrorCode.PARENT_UNKNOWN) {
@@ -253,14 +242,27 @@ export function getBeaconBlockApi({
             }
             throw e;
           }),
-        // TODO deneb: publish signed blobs as well
+        ...signedBlobs.map((signedBlob) => () => network.publishBlobSidecar(signedBlob)),
       ];
       await promiseAllMaybeAsync(publishPromises);
     },
 
-    async getBlobSidecars(_blockId) {
-      // TODO DENEB: Add implementation on the DB structure change PR
-      throw Error("");
+    async getBlobSidecars(blockId) {
+      const {block, executionOptimistic} = await resolveBlockId(chain.forkChoice, db, blockId);
+      const blockRoot = config.getForkTypes(block.message.slot).BeaconBlock.hashTreeRoot(block.message);
+
+      let {blobSidecars} = (await db.blobSidecars.get(blockRoot)) ?? {};
+      if (!blobSidecars) {
+        ({blobSidecars} = (await db.blobSidecarsArchive.get(block.message.slot)) ?? {});
+      }
+
+      if (!blobSidecars) {
+        throw Error("Not found in db");
+      }
+      return {
+        executionOptimistic,
+        data: blobSidecars,
+      };
     },
   };
 }

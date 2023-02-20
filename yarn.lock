@@ -4839,7 +4839,7 @@ binary-extensions@^2.0.0:
   resolved "https://registry.npmjs.org/binary-extensions/-/binary-extensions-2.2.0.tgz"
   integrity sha512-jDctJ/IVQbZoJykoeHbhXpOlNBqGNcwXJKJog42E5HDPUwQTSdjCHdihjj0DlnheQ7blbT6dHOafNAiS8ooQKA==
 
-bindings@^1.3.0, bindings@^1.3.1:
+bindings@^1.3.0, bindings@^1.3.1, bindings@^1.5.0:
   version "1.5.0"
   resolved "https://registry.npmjs.org/bindings/-/bindings-1.5.0.tgz"
   integrity sha512-p2q/t/mhvuOj/UeLlV6566GD/guowlr0hHxClI0W9m7MWYkL1F0hLo+0Aexs9HSPCtR1SXQ0TD3MMKrXZajbiQ==
@@ -5253,11 +5253,12 @@ bytes@3.1.2:
   resolved "https://registry.yarnpkg.com/bytes/-/bytes-3.1.2.tgz#8b0beeb98605adf1b128fa4386403c009e0221a5"
   integrity sha512-/Nf7TyzTx6S3yRJObOAV7956r8cr2+Oj8AC5dt8wSP3BQAoeX58NoHyCU8P8zGkNXStjTSi6fzO6F0pBdcYbEg==
 
-c-kzg@^1.0.9:
-  version "1.0.9"
-  resolved "https://registry.yarnpkg.com/c-kzg/-/c-kzg-1.0.9.tgz#cabadd0013b28b3e75dcb3ad115d65fee37baed7"
-  integrity sha512-5shQs7k/f7cN0Ya7g1bTgCX7CO2emh/2mkPKrjxqkC7Y+tM9YN88MWkop9ftMMZXadvVMrxWfZ/RCqBR8jRQOQ==
+c-kzg@^2.0.4:
+  version "2.0.4"
+  resolved "https://registry.yarnpkg.com/c-kzg/-/c-kzg-2.0.4.tgz#f565ce63d307706e9cc0dfb609bccca52b5bae6f"
+  integrity sha512-DsHrUSUIvC/k8TuHDTLddMGYBTYfcleyoIjv9k5iv4kJTI4J6gkntEocjKbKDCmohrwms0N4QYqx1ugp3RY3FQ==
   dependencies:
+    bindings "^1.5.0"
     node-addon-api "^5.0.0"
 
 cacache@^15.2.0:

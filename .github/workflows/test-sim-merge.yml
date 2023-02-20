@@ -12,8 +12,9 @@ env:
   NETHERMIND_IMAGE: nethermind/nethermind:1.14.3
   MERGEMOCK_IMAGE: g11tech/mergemock:latest
   GETH_WITHDRAWALS_IMAGE: g11tech/geth:withdrawalsfeb8
-  ETHEREUMJS_WITHDRAWALS_IMAGE: g11tech/ethereumjs:feb8
+  ETHEREUMJS_WITHDRAWALS_IMAGE: g11tech/ethereumjs:blobs-b6b63
   NETHERMIND_WITHDRAWALS_IMAGE: nethermindeth/nethermind:withdrawals_yolo
+  ETHEREUMJS_BLOBS_IMAGE: g11tech/ethereumjs:blobs-b6b63
 
 jobs:
   sim-merge-tests:
@@ -121,6 +122,17 @@ jobs:
       #   env:
       #     EL_BINARY_DIR: ${{ env.NETHERMIND_WITHDRAWALS_IMAGE }}
       #     EL_SCRIPT_DIR: netherminddocker
+
+      - name: Pull ethereumjs blobs
+        run: docker pull $ETHEREUMJS_BLOBS_IMAGE
+
+      - name: Test Lodestar <> ethereumjs blobs
+        run: yarn test:sim:blobs
+        working-directory: packages/beacon-node
+        env:
+          EL_BINARY_DIR: ${{ env.ETHEREUMJS_BLOBS_IMAGE }}
+          EL_SCRIPT_DIR: ethereumjsdocker
+          DEV_RUN: true
 
       - name: Upload debug log test files
         if: ${{ always() }}

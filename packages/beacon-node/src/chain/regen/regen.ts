@@ -3,8 +3,8 @@ import {
   CachedBeaconStateAllForks,
   computeEpochAtSlot,
   computeStartSlotAtEpoch,
-  DataAvailableStatus,
   ExecutionPayloadStatus,
+  DataAvailableStatus,
   processSlots,
   stateTransition,
 } from "@lodestar/state-transition";

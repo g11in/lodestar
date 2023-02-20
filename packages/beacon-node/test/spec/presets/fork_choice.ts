@@ -3,7 +3,7 @@ import {BeaconStateAllForks, isExecutionStateType} from "@lodestar/state-transit
 import {InputType} from "@lodestar/spec-test-util";
 import {toHexString} from "@chainsafe/ssz";
 import {CheckpointWithHex, ForkChoice} from "@lodestar/fork-choice";
-import {phase0, allForks, bellatrix, ssz, RootHex, deneb} from "@lodestar/types";
+import {phase0, allForks, bellatrix, ssz, RootHex} from "@lodestar/types";
 import {bnToNum} from "@lodestar/utils";
 import {createBeaconConfig} from "@lodestar/config";
 import {ForkSeq, isForkBlobs} from "@lodestar/params";
@@ -21,7 +21,6 @@ import {defaultChainOptions} from "../../../src/chain/options.js";
 import {getStubbedBeaconDb} from "../../utils/mocks/db.js";
 import {ClockStopped} from "../../utils/mocks/clock.js";
 import {getBlockInput, AttestationImportOpt, BlockSource} from "../../../src/chain/blocks/types.js";
-import {getEmptyBlobsSidecar} from "../../../src/util/blobs.js";
 import {ZERO_HASH_HEX} from "../../../src/constants/constants.js";
 import {PowMergeBlock} from "../../../src/eth1/interface.js";
 import {assertCorrectProgressiveBalances} from "../config.js";
@@ -162,13 +161,13 @@ export const forkChoiceTest =
                       config,
                       signedBlock,
                       BlockSource.gossip,
-                      getEmptyBlobsSidecar(config, signedBlock as deneb.SignedBeaconBlock)
+                      ssz.deneb.BlobSidecars.defaultValue()
                     );
 
               try {
                 await chain.processBlock(blockImport, {
                   seenTimestampSec: tickTime,
-                  validBlobsSidecar: true,
+                  validBlobSidecars: true,
                   importAttestations: AttestationImportOpt.Force,
                 });
                 if (!isValid) throw Error("Expect error since this is a negative test");

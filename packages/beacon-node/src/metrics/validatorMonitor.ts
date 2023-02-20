@@ -1,6 +1,6 @@
 import {computeEpochAtSlot, AttesterStatus, parseAttesterFlags} from "@lodestar/state-transition";
 import {Logger} from "@lodestar/utils";
-import {allForks, altair} from "@lodestar/types";
+import {allForks, altair, deneb} from "@lodestar/types";
 import {ChainForkConfig} from "@lodestar/config";
 import {MIN_ATTESTATION_INCLUSION_DELAY, SLOTS_PER_EPOCH} from "@lodestar/params";
 import {Epoch, Slot, ValidatorIndex} from "@lodestar/types";
@@ -23,6 +23,7 @@ export type ValidatorMonitor = {
   registerLocalValidatorInSyncCommittee(index: number, untilEpoch: Epoch): void;
   registerValidatorStatuses(currentEpoch: Epoch, statuses: AttesterStatus[], balances?: number[]): void;
   registerBeaconBlock(src: OpSource, seenTimestampSec: Seconds, block: allForks.BeaconBlock): void;
+  registerBlobSideCar(src: OpSource, seenTimestampSec: Seconds, blob: deneb.BlobSidecar): void;
   registerImportedBlock(block: allForks.BeaconBlock, data: {proposerBalanceDelta: number}): void;
   submitUnaggregatedAttestation(
     seenTimestampSec: number,
@@ -297,6 +298,10 @@ export function createValidatorMonitor(
         metrics.validatorMonitor.beaconBlockTotal.inc({src});
         metrics.validatorMonitor.beaconBlockDelaySeconds.observe({src}, delaySec);
       }
+    },
+
+    registerBlobSideCar(_src, _seenTimestampSec, _blob) {
+      //TODO: freetheblobs
     },
 
     registerImportedBlock(block, {proposerBalanceDelta}) {

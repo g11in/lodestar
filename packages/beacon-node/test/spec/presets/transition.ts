@@ -1,8 +1,8 @@
 import {
   BeaconStateAllForks,
-  DataAvailableStatus,
   ExecutionPayloadStatus,
   stateTransition,
+  DataAvailableStatus,
 } from "@lodestar/state-transition";
 import {allForks, ssz} from "@lodestar/types";
 import {createChainForkConfig, ChainConfig} from "@lodestar/config";

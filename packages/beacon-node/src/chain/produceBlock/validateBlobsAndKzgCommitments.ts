@@ -20,9 +20,9 @@ export function validateBlobsAndKzgCommitments(payload: allForks.ExecutionPayloa
   }
 
   for (let i = 0; i < blobsBundle.blobs.length; i++) {
-    const kzg = ckzg.blobToKzgCommitment(blobsBundle.blobs[i]) as deneb.KZGCommitment;
-    if (!byteArrayEquals(kzg, blobsBundle.commitments[i])) {
-      throw Error(`Wrong KZG[${i}] ${toHex(blobsBundle.commitments[i])} expected ${toHex(kzg)}`);
+    const commitment = ckzg.blobToKzgCommitment(blobsBundle.blobs[i]) as deneb.KZGCommitment;
+    if (!byteArrayEquals(commitment, blobsBundle.commitments[i])) {
+      throw Error(`Wrong Commitment[${i}] ${toHex(blobsBundle.commitments[i])} expected ${toHex(commitment)}`);
     }
   }
 }

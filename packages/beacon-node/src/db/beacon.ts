@@ -15,17 +15,17 @@ import {
   SyncCommitteeRepository,
   SyncCommitteeWitnessRepository,
   BackfilledRanges,
-  BlobsSidecarRepository,
-  BlobsSidecarArchiveRepository,
+  BlobSidecarsRepository,
+  BlobSidecarsArchiveRepository,
   BLSToExecutionChangeRepository,
 } from "./repositories/index.js";
 import {PreGenesisState, PreGenesisStateLastProcessedBlock} from "./single/index.js";
 
 export class BeaconDb extends DatabaseService implements IBeaconDb {
   block: BlockRepository;
-  blobsSidecar: BlobsSidecarRepository;
+  blobSidecars: BlobSidecarsRepository;
   blockArchive: BlockArchiveRepository;
-  blobsSidecarArchive: BlobsSidecarArchiveRepository;
+  blobSidecarsArchive: BlobSidecarsArchiveRepository;
   stateArchive: StateArchiveRepository;
 
   voluntaryExit: VoluntaryExitRepository;
@@ -52,9 +52,9 @@ export class BeaconDb extends DatabaseService implements IBeaconDb {
 
     // Warning: If code is ever run in the constructor, must change this stub to not extend 'packages/beacon-node/test/utils/stub/beaconDb.ts' -
     this.block = new BlockRepository(this.config, this.db);
-    this.blobsSidecar = new BlobsSidecarRepository(this.config, this.db);
+    this.blobSidecars = new BlobSidecarsRepository(this.config, this.db);
     this.blockArchive = new BlockArchiveRepository(this.config, this.db);
-    this.blobsSidecarArchive = new BlobsSidecarArchiveRepository(this.config, this.db);
+    this.blobSidecarsArchive = new BlobSidecarsArchiveRepository(this.config, this.db);
     this.stateArchive = new StateArchiveRepository(this.config, this.db);
     this.voluntaryExit = new VoluntaryExitRepository(this.config, this.db);
     this.blsToExecutionChange = new BLSToExecutionChangeRepository(this.config, this.db);
@@ -81,7 +81,7 @@ export class BeaconDb extends DatabaseService implements IBeaconDb {
 
   async pruneHotDb(): Promise<void> {
     // Prune all hot blobs
-    await this.blobsSidecar.batchDelete(await this.blobsSidecar.keys());
+    await this.blobSidecars.batchDelete(await this.blobSidecars.keys());
     // Prune all hot blocks
     // TODO: Enable once it's deemed safe
     // await this.block.batchDelete(await this.block.keys());

@@ -1,10 +1,10 @@
 import {InputType} from "@lodestar/spec-test-util";
 import {
   BeaconStateAllForks,
-  DataAvailableStatus,
   ExecutionPayloadStatus,
   processSlots,
   stateTransition,
+  DataAvailableStatus,
 } from "@lodestar/state-transition";
 import {allForks, deneb, ssz} from "@lodestar/types";
 import {ForkName} from "@lodestar/params";

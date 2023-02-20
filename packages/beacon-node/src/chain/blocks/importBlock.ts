@@ -74,13 +74,13 @@ export async function importBlock(
   });
 
   if (blockInput.type === BlockInputType.postDeneb) {
-    const {blobs} = blockInput;
+    const {blobs: blobSidecars} = blockInput;
     // NOTE: Old blobs are pruned on archive
-    await this.db.blobsSidecar.add(blobs);
-    this.logger.debug("Persisted blobsSidecar to hot DB", {
-      blobsLen: blobs.blobs.length,
-      slot: blobs.beaconBlockSlot,
-      root: toHexString(blobs.beaconBlockRoot),
+    await this.db.blobSidecars.add({blockRoot, slot: block.message.slot, blobSidecars});
+    this.logger.debug("Persisted blobSidecars to hot DB", {
+      blobsLen: blobSidecars.length,
+      slot: block.message.slot,
+      root: blockRootHex,
     });
   }
 

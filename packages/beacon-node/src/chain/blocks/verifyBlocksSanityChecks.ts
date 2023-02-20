@@ -5,7 +5,7 @@ import {Slot, deneb, WithOptionalBytes} from "@lodestar/types";
 import {toHexString} from "@lodestar/utils";
 import {IClock} from "../../util/clock.js";
 import {BlockError, BlockErrorCode} from "../errors/index.js";
-import {validateBlobsSidecar} from "../validation/blobsSidecar.js";
+import {validateBlobSidecars} from "../validation/blobSidecar.js";
 import {BlockInput, BlockInputType, ImportBlockOpts} from "./types.js";
 
 /**
@@ -126,16 +126,19 @@ function maybeValidateBlobs(
   // TODO Deneb: Make switch verify it's exhaustive
   switch (blockInput.type) {
     case BlockInputType.postDeneb: {
-      if (opts.validBlobsSidecar) {
+      if (opts.validBlobSidecars) {
         return DataAvailableStatus.available;
       }
 
       const {block, blobs} = blockInput;
       const blockSlot = block.message.slot;
-      const {blobKzgCommitments} = (block as deneb.SignedBeaconBlock).message.body;
+      const {
+        blobKzgCommitments,
+        executionPayload: {transactions},
+      } = (block as deneb.SignedBeaconBlock).message.body;
       const beaconBlockRoot = config.getForkTypes(blockSlot).BeaconBlock.hashTreeRoot(block.message);
       // TODO Deneb: This function throws un-typed errors
-      validateBlobsSidecar(blockSlot, beaconBlockRoot, blobKzgCommitments, blobs);
+      validateBlobSidecars(blockSlot, beaconBlockRoot, transactions, blobKzgCommitments, blobs);
 
       return DataAvailableStatus.available;
     }

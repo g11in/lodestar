@@ -49,7 +49,7 @@ type WorkOpts = {
  */
 const executeGossipWorkOrderObj: Record<GossipType, WorkOpts> = {
   [GossipType.beacon_block]: {bypassQueue: true},
-  [GossipType.beacon_block_and_blobs_sidecar]: {bypassQueue: true},
+  [GossipType.blob_sidecar]: {bypassQueue: true},
   [GossipType.beacon_aggregate_and_proof]: {},
   [GossipType.voluntary_exit]: {},
   [GossipType.bls_to_execution_change]: {},
@@ -222,7 +222,7 @@ export class NetworkProcessor {
         }
         if (
           slot === this.chain.clock.currentSlot &&
-          (topicType === GossipType.beacon_block || topicType === GossipType.beacon_block_and_blobs_sidecar)
+          (topicType === GossipType.beacon_block || topicType === GossipType.blob_sidecar)
         ) {
           // in the worse case if the current slot block is not valid, this will be reset in the next slot
           this.isProcessingCurrentSlotBlock = true;

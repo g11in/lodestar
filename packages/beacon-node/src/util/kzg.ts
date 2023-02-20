@@ -16,18 +16,16 @@ export let ckzg: {
   freeTrustedSetup(): void;
   loadTrustedSetup(filePath: string): void;
   blobToKzgCommitment(blob: Uint8Array): Uint8Array;
-  computeAggregateKzgProof(blobs: Uint8Array[]): Uint8Array;
-  verifyAggregateKzgProof(
-    blobs: Uint8Array[],
-    expectedKzgCommitments: Uint8Array[],
-    kzgAggregatedProof: Uint8Array
-  ): boolean;
+  computeBlobKzgProof(blob: Uint8Array, commitment: Uint8Array): Uint8Array;
+  verifyBlobKzgProof(blob: Uint8Array, commitment: Uint8Array, proof: Uint8Array): boolean;
+  verifyBlobKzgProofBatch(blobs: Uint8Array[], expectedKzgCommitments: Uint8Array[], kzgProofs: Uint8Array[]): boolean;
 } = {
   freeTrustedSetup: ckzgNotLoaded,
   loadTrustedSetup: ckzgNotLoaded,
   blobToKzgCommitment: ckzgNotLoaded,
-  computeAggregateKzgProof: ckzgNotLoaded,
-  verifyAggregateKzgProof: ckzgNotLoaded,
+  computeBlobKzgProof: ckzgNotLoaded,
+  verifyBlobKzgProof: ckzgNotLoaded,
+  verifyBlobKzgProofBatch: ckzgNotLoaded,
 };
 
 // Global variable __dirname no longer available in ES6 modules.
@@ -47,7 +45,7 @@ const TOTAL_SIZE = 2 * POINT_COUNT_BYTES + G1POINT_BYTES * G1POINT_COUNT + G2POI
 export async function initCKZG(): Promise<void> {
   /* eslint-disable import/no-extraneous-dependencies, @typescript-eslint/ban-ts-comment */
   // @ts-ignore
-  ckzg = (await import("c-kzg")) as typeof ckzg;
+  ckzg = (await import("c-kzg")).default as typeof ckzg;
   /* eslint-enable import/no-extraneous-dependencies, @typescript-eslint/ban-ts-comment */
 }
 
@@ -67,10 +65,7 @@ export function loadEthereumTrustedSetup(): void {
       // in unit tests, calling loadTrustedSetup() twice has error so we have to free and retry
       ckzg.loadTrustedSetup(TRUSTED_SETUP_TXT_FILEPATH);
     } catch (e) {
-      if ((e as Error).message === "Call freeTrustedSetup before loading a new trusted setup.") {
-        ckzg.freeTrustedSetup();
-        ckzg.loadTrustedSetup(TRUSTED_SETUP_TXT_FILEPATH);
-      } else {
+      if ((e as Error).message !== "Error trusted setup is already loaded") {
         throw e;
       }
     }

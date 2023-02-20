@@ -1,8 +1,8 @@
 import {
   BeaconStateAllForks,
-  DataAvailableStatus,
   ExecutionPayloadStatus,
   stateTransition,
+  DataAvailableStatus,
 } from "@lodestar/state-transition";
 import {altair, bellatrix, ssz} from "@lodestar/types";
 import {ForkName} from "@lodestar/params";
